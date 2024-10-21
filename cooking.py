@@ -1,4 +1,7 @@
-
+import streamlit as st
+import pandas as pd
+import requests
+import openai
 
 # OpenAI API 키 설정 (본인의 API 키로 교체하세요)
 openai.api_key = "YOUR_API_KEY"
@@ -53,7 +56,10 @@ if st.button("AI 피드백 받기"):
                 )
                 feedback = response["choices"][0]["message"]["content"]
                 st.success(f"AI 피드백: {feedback}")
-            e
+            except Exception as e:
+                st.error(f"AI 피드백을 가져오는 데 실패했습니다: {e}")
+    else:
+        st.warning("결정을 입력해 주세요.")
 
 # 고객 세분화 기능
 st.subheader("고객 세분화")
@@ -69,4 +75,38 @@ if st.button("세분화하기"):
             "고급" if "VIP" in customer else "일반" for customer in customers
         ]
 
-        st.succ
+        st.success("세분화 결과:")
+        st.dataframe(segmentation)
+
+        # 세분화 결과 시각화
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        segmentation['세그먼트'].value_counts().plot(kind='bar', ax=ax)
+        ax.set_title("고객 세그먼트 분포")
+        ax.set_xlabel("세그먼트")
+        ax.set_ylabel("고객 수")
+        st.pyplot(fig)
+    else:
+        st.warning("고객 데이터를 입력해 주세요.")
+
+# 챗봇 기능
+st.subheader("챗봇")
+chat_input = st.text_input("질문을 입력하세요:", "")
+if st.button("전송"):
+    if chat_input:
+        with st.spinner("응답을 가져오는 중..."):
+            try:
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": chat_input}]
+                )
+                chat_response = response["choices"][0]["message"]["content"]
+                st.success(f"챗봇 응답: {chat_response}")
+            except Exception as e:
+                st.error(f"챗봇 응답을 가져오는 데 실패했습니다: {e}")
+    else:
+        st.warning("질문을 입력해 주세요.")
+
+# 앱 종료 메시지
+st.write("이 앱은 사용자가 더 나은 비즈니스를 위한 데이터 기반 결정을 내리는 데 도움을 주기 위해 개발되었습니다.")
